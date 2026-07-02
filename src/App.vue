@@ -27,7 +27,7 @@ import HelloWorld from './components/HelloWorld.vue'
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  background: pink;
+  background: white;
 }
 header {
   line-height: 1.5;
