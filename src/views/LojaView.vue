@@ -115,7 +115,6 @@ function avancarLanches() {
       <p>Lanches e colecionáveis da bomboniere.</p>
     </header>
 
-    <!-- 1. Combos -->
     <section class="secao" aria-labelledby="titulo-combos">
       <h2 id="titulo-combos" class="secao-titulo">Combos</h2>
 
@@ -139,7 +138,6 @@ function avancarLanches() {
       </div>
     </section>
 
-    <!-- 2. Pipocas -->
     <section class="secao" aria-labelledby="titulo-pipocas">
       <h2 id="titulo-pipocas" class="secao-titulo">Pipocas</h2>
 
@@ -153,7 +151,6 @@ function avancarLanches() {
       </div>
     </section>
 
-    <!-- 3. Lanches (resto) -->
     <section class="secao" aria-labelledby="titulo-lanches">
       <div class="secao-topo">
         <h2 id="titulo-lanches" class="secao-titulo">Lanches</h2>
@@ -179,13 +176,14 @@ function avancarLanches() {
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  padding: 1rem 0 2.5rem;
+  padding: 1.5rem 0 3rem;
   color: #f0f0f0;
 }
 
 .catalogo-header {
   margin-bottom: 1.75rem;
   padding-bottom: 0.75rem;
+  text-align: center;
   border-bottom: 2px solid #c41e3a;
 }
 
@@ -220,8 +218,13 @@ function avancarLanches() {
   font-size: 0.95rem;
   font-weight: 700;
   color: #e8c547;
+  text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.secao-topo .secao-titulo {
+  text-align: left;
 }
 
 .carrossel-wrapper {

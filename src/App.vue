@@ -11,7 +11,9 @@ import { RouterLink, RouterView } from 'vue-router'
         <RouterLink to="/final">Final</RouterLink>
       </nav>
   </header>
-  <RouterView />
+  <div class="conteudo">
+    <RouterView />
+  </div>
 </template>
 
 <style>
@@ -55,5 +57,15 @@ nav a.router-link-exact-active {
   color: #fff;
   background-color: #c41e3a;
   border-radius: 15px;
+}
+
+.conteudo {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 4vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 </style>
