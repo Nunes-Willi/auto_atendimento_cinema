@@ -14,11 +14,16 @@ import { RouterLink, RouterView } from 'vue-router'
   <RouterView />
 </template>
 
-<style scoped>
-body{
+<style>
+body {
   margin: 0;
   padding-top: 80px;
+  background-color: #0a0a0a;
+  color: #f0f0f0;
 }
+</style>
+
+<style scoped>
 header {
   width: 100%;
   display: flex;
@@ -33,21 +38,22 @@ nav {
   width: 60vh;
   font-size: 12px;
   text-align: center;
-  border: 1px solid black;
+  border: 1px solid #333;
   border-radius: 15px;
   padding: 8px;
-  background-color: white;
+  background-color: #141414;
 }
 
 nav a {
   display: inline-block;
   padding: 0 1rem;
   text-decoration: none;
+  color: #aaa;
 }
 
 nav a.router-link-exact-active {
-  color: white;
-  background-color: rgba(0, 0, 0, 0.863);
+  color: #fff;
+  background-color: #c41e3a;
   border-radius: 15px;
 }
 </style>
