@@ -16,15 +16,6 @@ import { RouterLink, RouterView } from 'vue-router'
   </div>
 </template>
 
-<style>
-body {
-  margin: 0;
-  padding-top: 80px;
-  background-color: #0a0a0a;
-  color: #f0f0f0;
-}
-</style>
-
 <style scoped>
 header {
   width: 100%;
