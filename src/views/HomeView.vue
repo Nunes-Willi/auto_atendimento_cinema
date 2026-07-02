@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
-
+import FilmeCard from '../components/FilmeCard.vue'
+import { filmes } from '../data/filmes'
 const fase = ref('inicio')
 
 function iniciarAtendimento() {
@@ -44,32 +45,18 @@ function iniciarAtendimento() {
     </div>
     </main>
   </section>
+
   <section id="home" v-else>
-    <div>
-      <h1>Compra de Ingressos</h1>
-      <ul>
-        <li class="1filme">
-          <img src="/banner/panico.webp" alt="">
-          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur debitis necessitatibus amet sed id. Corporis nemo nobis cum corrupti facilis fugiat cumque voluptatibus ipsa, reprehenderit laboriosam soluta minus non consequatur.</p>
-        </li>
-        <li class="2filme">
-          <img src="/banner/panico.webp" alt="">
-          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur debitis necessitatibus amet sed id. Corporis nemo nobis cum corrupti facilis fugiat cumque voluptatibus ipsa, reprehenderit laboriosam soluta minus non consequatur.</p>
-        </li>
-        <li class="3filme">
-          <img src="/banner/panico.webp" alt="">
-          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur debitis necessitatibus amet sed id. Corporis nemo nobis cum corrupti facilis fugiat cumque voluptatibus ipsa, reprehenderit laboriosam soluta minus non consequatur.</p>
-        </li>
-        <li class="4filme">
-          <img src="/banner/panico.webp" alt="">
-          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur debitis necessitatibus amet sed id. Corporis nemo nobis cum corrupti facilis fugiat cumque voluptatibus ipsa, reprehenderit laboriosam soluta minus non consequatur.</p>
-        </li>
-        <li class="5filme">
-          <img src="/banner/panico.webp" alt="">
-          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur debitis necessitatibus amet sed id. Corporis nemo nobis cum corrupti facilis fugiat cumque voluptatibus ipsa, reprehenderit laboriosam soluta minus non consequatur.</p>
-        </li>
+     <header class="cartazes-header">
+      <h1>Escolha seu filme</h1>
+      <p class="cartazes-subtitulo">{{ filmes.length }} títulos disponíveis nesta semana</p>
+    </header>
+
+    <section class="cartazes-grid">
+      <ul class="filmes-lista">
+        <FilmeCard v-for="filme in filmes" :key="filme.id" :filme="filme" />
       </ul>
-    </div>
+    </section>
   </section>
 </template>
 
@@ -235,49 +222,49 @@ h1 {
   font-size: 2.5rem;
 }
 
-#home ul {
-  display: flex;
-  justify-content: center;
-  gap: 25px;
-  flex-wrap: wrap;
+.cartazes-header h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.85rem, 4vw, 2.5rem);
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.cartazes-subtitulo {
+  margin: 0;
+  color: #888;
+  font-size: 0.95rem;
+}
+
+.cartazes-grid {
+  padding: 0 0.25rem;
+}
+
+.filmes-lista {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(1.25rem, 3vw, 2rem);
+  width: 100%;
+  list-style: none;
+  margin: 0;
   padding: 0;
 }
 
-#home ul li {
-  width: 230px;
-  list-style: none;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  background: #1b1b1b;
-  border: 2px solid #444;
-  border-radius: 12px;
-
-  padding: 20px;
-
-  transition: .3s;
+@media (min-width: 480px) {
+  .filmes-lista {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
-#home ul li:hover {
-  border-color: white;
-  transform: translateY(-8px);
-  box-shadow: 0 10px 25px rgba(255,255,255,.15);
+@media (min-width: 768px) {
+  .filmes-lista {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
-#home img {
-  width: 170px;
-  aspect-ratio: 2 / 3;
-  object-fit: cover;
-
-  border-radius: 8px;
-  margin-bottom: 18px;
+@media (min-width: 1024px) {
+  .filmes-lista {
+    grid-template-columns: repeat(5, 1fr);
+  }
 }
 
-#home p {
-  text-align: justify;
-  line-height: 1.6;
-  font-size: .95rem;
-}
 </style>
