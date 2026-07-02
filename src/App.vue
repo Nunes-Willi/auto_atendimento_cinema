@@ -11,9 +11,14 @@ import { RouterLink, RouterView } from 'vue-router'
         <RouterLink to="/final">Final</RouterLink>
       </nav>
   </header>
+  <RouterView />
 </template>
 
 <style scoped>
+body{
+  margin: 0;
+  padding-top: 80px;
+}
 header {
   width: 100%;
   display: flex;
