@@ -1,6 +1,8 @@
 <script setup>
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { bannerUrl } from '../data/filmes'
+
+const router = useRouter()
 
 defineProps({
   filme: {
@@ -8,6 +10,10 @@ defineProps({
     required: true,
   },
 })
+
+function comprarIngresso() {
+  router.push('/')
+}
 </script>
 
 <template>
@@ -17,46 +23,55 @@ defineProps({
     <div class="hero-conteudo">
       <RouterLink to="/cartazes" class="btn-voltar">← Escolher outro filme</RouterLink>
 
-      <div class="hero-principal">
-        <h1>{{ filme.titulo }}</h1>
+      <div class="hero-topo">
+        <div class="hero-principal">
+          <h1>{{ filme.titulo }}</h1>
 
-        <div class="hero-tags">
-          <span class="tag tag-classificacao">{{ filme.classificacao }}+</span>
-          <span v-for="genero in filme.generos" :key="genero" class="tag">{{ genero }}</span>
-          <span class="tag tag-duracao">{{ filme.duracao }}</span>
+          <div class="hero-tags">
+            <span class="tag tag-classificacao">{{ filme.classificacao }}+</span>
+            <span v-for="genero in filme.generos" :key="genero" class="tag">{{ genero }}</span>
+            <span class="tag tag-duracao">{{ filme.duracao }}</span>
+          </div>
+
+          <div class="hero-nota">
+            <span class="estrelas">★★★★★</span>
+            <span>{{ filme.nota }} · {{ filme.avaliacoes }} avaliações</span>
+          </div>
+
+          <div class="hero-acoes">
+            <button type="button" class="btn-assistir" @click="comprarIngresso">Comprar ingresso</button>
+          </div>
         </div>
 
-        <div class="hero-nota">
-          <span class="estrelas">★★★★★</span>
-          <span>Nota média: {{ filme.nota }} ({{ filme.avaliacoes }})</span>
-        </div>
-
-        <div class="hero-acoes">
-          <button type="button" class="btn-assistir">Comprar ingresso</button>
-          <button type="button" class="btn-icone" aria-label="Favoritar">+</button>
-          <button type="button" class="btn-icone" aria-label="Compartilhar">↗</button>
+        <div class="hero-poster">
+          <img :src="bannerUrl(filme.banner)" :alt="filme.titulo" />
         </div>
       </div>
 
-      <div class="hero-detalhes">
-        <div class="hero-sinopse">
+      <div class="hero-painel">
+        <div class="painel-bloco painel-sinopse">
+          <h2>Sinopse</h2>
           <p>{{ filme.sinopse }}</p>
-          <span class="link-detalhes">Mais detalhes</span>
         </div>
 
-        <div class="hero-info">
-          <p><strong>Ano:</strong> {{ filme.ano }}</p>
-          <p><strong>Diretor:</strong> {{ filme.diretor }}</p>
-          <p><strong>Áudio:</strong> {{ filme.audio }}</p>
-          <p><strong>Legendas:</strong> {{ filme.legendas }}</p>
-          <p><strong>Sala:</strong> {{ filme.sala }}</p>
+        <div class="painel-bloco painel-info">
+          <h2>Informações</h2>
+          <dl>
+            <div><dt>Ano</dt><dd>{{ filme.ano }}</dd></div>
+            <div><dt>Diretor</dt><dd>{{ filme.diretor }}</dd></div>
+            <div><dt>Áudio</dt><dd>{{ filme.audio }}</dd></div>
+            <div><dt>Legendas</dt><dd>{{ filme.legendas }}</dd></div>
+            <div><dt>Sala</dt><dd>{{ filme.sala }}</dd></div>
+          </dl>
         </div>
       </div>
 
       <div class="hero-horarios">
-        <h2>Horários de hoje</h2>
+        <h2>Sessões de hoje</h2>
         <ul>
-          <li v-for="horario in filme.horarios" :key="horario">{{ horario }}</li>
+          <li v-for="horario in filme.horarios" :key="horario">
+            <button type="button">{{ horario }}</button>
+          </li>
         </ul>
       </div>
     </div>
@@ -67,7 +82,7 @@ defineProps({
 .hero {
   position: relative;
   width: 100%;
-  min-height: 85vh;
+  min-height: 100vh;
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
@@ -77,53 +92,56 @@ defineProps({
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.92) 0%,
-    rgba(0, 0, 0, 0.75) 45%,
-    rgba(0, 0, 0, 0.4) 100%
-  );
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.4) 40%, rgba(0, 0, 0, 0.65) 100%),
+    linear-gradient(to right, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.5) 50%, transparent 100%);
 }
 
 .hero-conteudo {
   position: relative;
   z-index: 1;
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 6rem clamp(1.25rem, 4vw, 3rem) 3rem;
+  padding: 5.5rem clamp(1.25rem, 4vw, 3rem) 3rem;
 }
 
 .btn-voltar {
   display: inline-flex;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   padding: 0.5rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
   color: #eee;
   font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .btn-voltar:hover {
   border-color: #f47521;
-  background: rgba(244, 117, 33, 0.2);
+  background: rgba(244, 117, 33, 0.25);
   color: #fff;
 }
 
-.hero-principal {
-  max-width: 640px;
+.hero-topo {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2.5rem;
+  align-items: end;
+  margin-bottom: 2.5rem;
 }
 
 .hero-principal h1 {
-  margin-bottom: 1rem;
-  font-size: clamp(2rem, 5vw, 3.25rem);
-  font-weight: 700;
-  line-height: 1.1;
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+  margin: 0 0 1rem;
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
 }
 
 .hero-tags {
@@ -134,17 +152,18 @@ defineProps({
 }
 
 .tag {
-  padding: 0.25rem 0.65rem;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.12);
-  font-size: 0.75rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  font-size: 0.72rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 .tag-classificacao {
-  background: rgba(196, 30, 58, 0.85);
+  background: rgba(196, 30, 58, 0.9);
 }
 
 .tag-duracao {
@@ -155,118 +174,165 @@ defineProps({
 .hero-nota {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  font-size: 0.9rem;
-  color: #ddd;
+  gap: 0.6rem;
+  margin-bottom: 1.75rem;
+  font-size: 0.95rem;
+  color: #ccc;
 }
 
 .estrelas {
   color: #f47521;
-  letter-spacing: 2px;
-}
-
-.hero-acoes {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 2.5rem;
+  letter-spacing: 1px;
 }
 
 .btn-assistir {
-  padding: 0.85rem 1.75rem;
+  padding: 1rem 2rem;
   border: none;
-  border-radius: 4px;
-  background: #f47521;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f47521 0%, #e85d04 100%);
   color: #fff;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 8px 24px rgba(244, 117, 33, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .btn-assistir:hover {
-  background: #ff8c3a;
-  transform: scale(1.02);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(244, 117, 33, 0.45);
 }
 
-.btn-icone {
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.4);
-  color: #fff;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
+.hero-poster {
+  display: none;
+  width: 200px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
 
-.btn-icone:hover {
-  border-color: #f47521;
-  background: rgba(244, 117, 33, 0.2);
+.hero-poster img {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  display: block;
 }
 
-.hero-detalhes {
+.hero-painel {
   display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 2rem;
-  max-width: 900px;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1.25rem;
   margin-bottom: 2rem;
 }
 
-.hero-sinopse p {
-  font-size: 0.95rem;
-  line-height: 1.65;
-  color: #ccc;
+.painel-bloco {
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  background: rgba(20, 20, 20, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
 }
 
-.link-detalhes {
-  display: inline-block;
-  margin-top: 0.75rem;
-  color: #f47521;
-  font-size: 0.85rem;
-  font-weight: 600;
+.painel-bloco h2 {
+  margin: 0 0 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #e8c547;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
+  letter-spacing: 0.1em;
 }
 
-.hero-info {
-  font-size: 0.85rem;
+.painel-sinopse p {
+  margin: 0;
+  font-size: 0.95rem;
   line-height: 1.7;
-  color: #aaa;
+  color: #bbb;
 }
 
-.hero-info strong {
-  color: #ddd;
+.painel-info dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.painel-info div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.85rem;
+}
+
+.painel-info div:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.painel-info dt {
+  color: #777;
+  font-weight: 500;
+}
+
+.painel-info dd {
+  margin: 0;
+  color: #eee;
+  text-align: right;
+}
+
+.hero-horarios {
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  background: rgba(10, 10, 10, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
 }
 
 .hero-horarios h2 {
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #fff;
+  margin: 0 0 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #e8c547;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .hero-horarios ul {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.65rem;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.hero-horarios li {
-  padding: 0.5rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.35);
-  font-size: 0.9rem;
-  color: #eee;
+.hero-horarios button {
+  padding: 0.65rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.hero-horarios button:hover {
+  border-color: #f47521;
+  background: rgba(244, 117, 33, 0.2);
+  transform: translateY(-2px);
+}
+
+@media (min-width: 768px) {
+  .hero-poster {
+    display: block;
+  }
 }
 
 @media (max-width: 768px) {
@@ -278,9 +344,12 @@ defineProps({
     padding-top: 5rem;
   }
 
-  .hero-detalhes {
+  .hero-topo {
     grid-template-columns: 1fr;
-    gap: 1.25rem;
+  }
+
+  .hero-painel {
+    grid-template-columns: 1fr;
   }
 }
 </style>

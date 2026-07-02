@@ -1,5 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue'
+import { useCarrinhoStore } from '../stores/carrinho'
+
+const carrinho = useCarrinhoStore()
 
 const combos = [
   {
@@ -106,6 +109,15 @@ function moverCombos(direcao) {
 function avancarLanches() {
   lanchesIndice.value = (lanchesIndice.value + LANCHES_PASSO) % lanches.length
 }
+
+function adicionar(item) {
+  carrinho.adicionar({
+    id: item.nome,
+    nome: item.nome,
+    icone: item.icone,
+    preco: item.preco,
+  })
+}
 </script>
 
 <template>
@@ -129,6 +141,7 @@ function avancarLanches() {
             <h3>{{ item.nome }}</h3>
             <p>{{ item.descricao }}</p>
             <span class="produto-preco">{{ formatarPreco(item.preco) }}</span>
+            <button type="button" class="btn-adicionar" @click="adicionar(item)">Adicionar</button>
           </article>
         </div>
 
@@ -147,6 +160,7 @@ function avancarLanches() {
           <h3>{{ item.nome }}</h3>
           <p>{{ item.descricao }}</p>
           <span class="produto-preco">{{ formatarPreco(item.preco) }}</span>
+          <button type="button" class="btn-adicionar" @click="adicionar(item)">Adicionar</button>
         </article>
       </div>
     </section>
@@ -165,6 +179,7 @@ function avancarLanches() {
           <h3>{{ item.nome }}</h3>
           <p>{{ item.descricao }}</p>
           <span class="produto-preco">{{ formatarPreco(item.preco) }}</span>
+          <button type="button" class="btn-adicionar" @click="adicionar(item)">Adicionar</button>
         </article>
       </div>
     </section>
@@ -336,6 +351,24 @@ function avancarLanches() {
   font-size: 0.95rem;
   font-weight: 700;
   color: #e8c547;
+}
+
+.btn-adicionar {
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #c41e3a;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btn-adicionar:hover {
+  background: #c41e3a;
+  transform: scale(1.03);
 }
 
 @media (max-width: 720px) {
