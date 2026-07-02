@@ -14,9 +14,11 @@ function iniciarAtendimento() {
     }, 600)
   }, 650)
 }
+
 </script>
 
 <template>
+  <section id="homeClaquete" v-if="fase !== 'sumido'">
   <main>
     <div v-if="fase === 'batendo'" class="flash"></div>
 
@@ -34,13 +36,41 @@ function iniciarAtendimento() {
         <div class="info-linha info-linha-divisor">
         </div>
         <div class="info-linha">
-          <button class="start" type="button" :disabled="fase === 'batendo'" @click="iniciarAtendimento">
+          <button class="btnRun" type="button" :disabled="fase === 'batendo'" @click="iniciarAtendimento">
             {{ fase === 'batendo' ? 'Action!' : 'Iniciar Atendimento' }}
           </button>
         </div>
       </div>
     </div>
-  </main>
+    </main>
+  </section>
+  <section id="home" v-else>
+    <div>
+      <h1>Compra de Ingressos</h1>
+      <ul>
+        <li class="1filme">
+          <img src="/banner/panico.webp" alt="">
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur debitis necessitatibus amet sed id. Corporis nemo nobis cum corrupti facilis fugiat cumque voluptatibus ipsa, reprehenderit laboriosam soluta minus non consequatur.</p>
+        </li>
+        <li class="2filme">
+          <img src="/banner/panico.webp" alt="">
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur debitis necessitatibus amet sed id. Corporis nemo nobis cum corrupti facilis fugiat cumque voluptatibus ipsa, reprehenderit laboriosam soluta minus non consequatur.</p>
+        </li>
+        <li class="3filme">
+          <img src="/banner/panico.webp" alt="">
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur debitis necessitatibus amet sed id. Corporis nemo nobis cum corrupti facilis fugiat cumque voluptatibus ipsa, reprehenderit laboriosam soluta minus non consequatur.</p>
+        </li>
+        <li class="4filme">
+          <img src="/banner/panico.webp" alt="">
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur debitis necessitatibus amet sed id. Corporis nemo nobis cum corrupti facilis fugiat cumque voluptatibus ipsa, reprehenderit laboriosam soluta minus non consequatur.</p>
+        </li>
+        <li class="5filme">
+          <img src="/banner/panico.webp" alt="">
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur debitis necessitatibus amet sed id. Corporis nemo nobis cum corrupti facilis fugiat cumque voluptatibus ipsa, reprehenderit laboriosam soluta minus non consequatur.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
 </template>
 
 <style scoped>
@@ -61,6 +91,8 @@ main {
   pointer-events: none;
   z-index: 10;
   animation: flash-claquete 0.35s ease-out;
+
+  border-radius: 2rem;
 }
 
 .claquete {
@@ -167,7 +199,7 @@ h1 {
   letter-spacing: 2px;
 }
 
-.start {
+.btnRun {
   width: 85%;
   padding: 12px;
   border: 2px solid white;
@@ -180,7 +212,7 @@ h1 {
   transition: 0.25s;
 }
 
-.start:hover:not(:disabled) {
+.btnRun:hover:not(:disabled) {
   background: white;
   color: black;
   transform: scale(1.05);
@@ -189,5 +221,63 @@ h1 {
 .start:disabled {
   opacity: 0.7;
   cursor: wait;
+}
+
+#home {
+  background: #111;
+  padding: 60px 40px;
+  color: white;
+}
+
+#home h1 {
+  text-align: center;
+  margin-bottom: 40px;
+  font-size: 2.5rem;
+}
+
+#home ul {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  flex-wrap: wrap;
+  padding: 0;
+}
+
+#home ul li {
+  width: 230px;
+  list-style: none;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  background: #1b1b1b;
+  border: 2px solid #444;
+  border-radius: 12px;
+
+  padding: 20px;
+
+  transition: .3s;
+}
+
+#home ul li:hover {
+  border-color: white;
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(255,255,255,.15);
+}
+
+#home img {
+  width: 170px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+
+  border-radius: 8px;
+  margin-bottom: 18px;
+}
+
+#home p {
+  text-align: justify;
+  line-height: 1.6;
+  font-size: .95rem;
 }
 </style>
