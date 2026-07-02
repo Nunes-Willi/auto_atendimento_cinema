@@ -1,5 +1,13 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { computed, watchEffect } from 'vue'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
+
+const route = useRoute()
+const paginaLivre = computed(() => route.meta.fullBleed === true)
+
+watchEffect(() => {
+  document.body.classList.toggle('pagina-filme', route.meta.fullBleed === true)
+})
 </script>
 
 <template>
@@ -11,7 +19,7 @@ import { RouterLink, RouterView } from 'vue-router'
         <RouterLink to="/final">Final</RouterLink>
       </nav>
   </header>
-  <div class="conteudo">
+  <div :class="['conteudo', { 'conteudo-livre': paginaLivre }]">
     <RouterView />
   </div>
 </template>
@@ -58,5 +66,10 @@ nav a.router-link-exact-active {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+.conteudo-livre {
+  max-width: none;
+  padding: 0;
+  align-items: stretch;
 }
 </style>

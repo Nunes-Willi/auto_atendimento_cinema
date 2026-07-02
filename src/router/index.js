@@ -14,6 +14,12 @@ const router = createRouter({
       name: 'cartazes',
       component: () => import('../views/CartazesView.vue'),
     },
+    {
+      path: '/filme/:id',
+      name: 'filme',
+      component: () => import('../views/FilmeView.vue'),
+      meta: { fullBleed: true },
+    },
      {
       path: '/loja',
       name: 'loja',
