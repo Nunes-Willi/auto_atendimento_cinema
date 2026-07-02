@@ -23,6 +23,12 @@ import HelloWorld from './components/HelloWorld.vue'
 </template>
 
 <style scoped>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  background: pink;
+}
 header {
   line-height: 1.5;
   max-height: 100vh;
