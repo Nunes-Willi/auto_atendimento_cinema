@@ -1,8 +1,20 @@
 <script setup>
-import { ref } from 'vue'
-import FilmeCard from '../components/FilmeCard.vue'
-import { filmes } from '../data/filmes'
+import { onMounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { filmes, bannerUrl } from '../data/filmes'
+import { useCarrinhoStore } from '../stores/carrinho'
+
+const carrinho = useCarrinhoStore()
+const { filmeSelecionado } = storeToRefs(carrinho)
+
 const fase = ref('inicio')
+
+onMounted(() => {
+  if (filmeSelecionado.value) {
+    fase.value = 'sumido'
+  }
+})
 
 function iniciarAtendimento() {
   if (fase.value !== 'inicio') return
@@ -16,47 +28,70 @@ function iniciarAtendimento() {
   }, 650)
 }
 
+function selecionarFilme(filme) {
+  carrinho.selecionarFilme(filme)
+}
 </script>
 
 <template>
-  <section id="homeClaquete" v-if="fase !== 'sumido'">
-  <main>
-    <div v-if="fase === 'batendo'" class="flash"></div>
+  <section v-if="fase !== 'sumido'" id="homeClaquete">
+    <main>
+      <div v-if="fase === 'batendo'" class="flash"></div>
 
-    <div
-      v-if="fase !== 'sumido'"
-      class="claquete"
-      :class="{ batendo: fase === 'batendo', fechado: fase === 'sumindo', sumindo: fase === 'sumindo' }"
-    >
-      <div class="claquete-topo"></div>
+      <div
+        class="claquete"
+        :class="{ batendo: fase === 'batendo', fechado: fase === 'sumindo', sumindo: fase === 'sumindo' }"
+      >
+        <div class="claquete-topo"></div>
 
-      <div class="claquete-corpo">
-        <div class="info-linha">
-          <h1>Seja Bem Vindo</h1>
-        </div>
-        <div class="info-linha info-linha-divisor">
-        </div>
-        <div class="info-linha">
-          <button class="btnRun" type="button" :disabled="fase === 'batendo'" @click="iniciarAtendimento">
-            {{ fase === 'batendo' ? 'Action!' : 'Iniciar Atendimento' }}
-          </button>
+        <div class="claquete-corpo">
+          <div class="info-linha">
+            <h1>Seja Bem Vindo</h1>
+          </div>
+          <div class="info-linha info-linha-divisor"></div>
+          <div class="info-linha">
+            <button class="btnRun" type="button" :disabled="fase === 'batendo'" @click="iniciarAtendimento">
+              {{ fase === 'batendo' ? 'Action!' : 'Iniciar Atendimento' }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
     </main>
   </section>
 
-  <section id="home" v-else>
-     <header class="cartazes-header">
-      <h1>Escolha seu filme</h1>
-      <p class="cartazes-subtitulo">{{ filmes.length }} títulos disponíveis nesta semana</p>
+  <section v-else id="home" class="home-selecao">
+    <header class="home-header">
+      <p class="home-tag">Autoatendimento</p>
+      <h1>Qual filme você quer ver?</h1>
+      <p class="home-subtitulo">Toque em um cartaz para selecionar sua sessão</p>
     </header>
 
-    <section class="cartazes-grid">
-      <ul class="filmes-lista">
-        <FilmeCard v-for="filme in filmes" :key="filme.id" :filme="filme" />
-      </ul>
-    </section>
+    <div v-if="filmeSelecionado" class="filme-destaque">
+      <img :src="bannerUrl(filmeSelecionado.banner)" :alt="filmeSelecionado.titulo" />
+      <div class="filme-destaque-info">
+        <span class="destaque-label">Filme selecionado</span>
+        <h2>{{ filmeSelecionado.titulo }}</h2>
+        <p>{{ filmeSelecionado.duracao }} · {{ filmeSelecionado.sala }}</p>
+        <div class="destaque-acoes">
+          <RouterLink to="/carrinho" class="btn-continuar">Ir ao carrinho</RouterLink>
+          <RouterLink to="/loja" class="btn-loja">Adicionar lanches</RouterLink>
+        </div>
+      </div>
+    </div>
+
+    <ul class="filmes-opcoes">
+      <li v-for="filme in filmes" :key="filme.id">
+        <button
+          type="button"
+          class="filme-opcao"
+          :class="{ selecionado: filmeSelecionado?.id === filme.id }"
+          @click="selecionarFilme(filme)"
+        >
+          <img :src="bannerUrl(filme.banner)" :alt="filme.titulo" loading="lazy" />
+          <span class="filme-opcao-nome">{{ filme.titulo }}</span>
+        </button>
+      </li>
+    </ul>
   </section>
 </template>
 
@@ -78,8 +113,6 @@ main {
   pointer-events: none;
   z-index: 10;
   animation: flash-claquete 0.35s ease-out;
-
-  border-radius: 2rem;
 }
 
 .claquete {
@@ -205,66 +238,191 @@ h1 {
   transform: scale(1.05);
 }
 
-.start:disabled {
+.btnRun:disabled {
   opacity: 0.7;
   cursor: wait;
 }
 
-#home {
-  background: #111;
-  padding: 60px 40px;
-  color: white;
+.home-selecao {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem 0 3rem;
+  color: #f0f0f0;
 }
 
-#home h1 {
+.home-header {
+  margin-bottom: 1.75rem;
   text-align: center;
-  margin-bottom: 40px;
-  font-size: 2.5rem;
 }
 
-.cartazes-header h1 {
+.home-tag {
+  display: inline-block;
   margin: 0 0 0.5rem;
-  font-size: clamp(1.85rem, 4vw, 2.5rem);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(196, 30, 58, 0.2);
+  color: #e8c547;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-header h1 {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.6rem, 4vw, 2.1rem);
   color: #fff;
   letter-spacing: -0.02em;
 }
 
-.cartazes-subtitulo {
+.home-subtitulo {
   margin: 0;
   color: #888;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
-.cartazes-grid {
-  padding: 0 0.25rem;
+.filme-destaque {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  border: 2px solid #c41e3a;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #1a1216 0%, #141414 100%);
+  box-shadow: 0 8px 32px rgba(196, 30, 58, 0.15);
 }
 
-.filmes-lista {
+.filme-destaque img {
+  width: 90px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.destaque-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #e8c547;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.filme-destaque-info h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+  color: #fff;
+}
+
+.filme-destaque-info p {
+  margin: 0 0 0.85rem;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.destaque-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn-continuar {
+  display: inline-block;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  background: #c41e3a;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.btn-continuar:hover {
+  background: #e02545;
+}
+
+.btn-loja {
+  display: inline-block;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ccc;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-loja:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #fff;
+}
+
+.filmes-opcoes {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: clamp(1.25rem, 3vw, 2rem);
-  width: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 1rem;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-@media (min-width: 480px) {
-  .filmes-lista {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.filme-opcao {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  border: 2px solid #2a2a2a;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #141414;
+  cursor: pointer;
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-@media (min-width: 768px) {
-  .filmes-lista {
-    grid-template-columns: repeat(4, 1fr);
-  }
+.filme-opcao:hover {
+  transform: translateY(-4px);
+  border-color: #555;
 }
 
-@media (min-width: 1024px) {
-  .filmes-lista {
-    grid-template-columns: repeat(5, 1fr);
-  }
+.filme-opcao.selecionado {
+  border-color: #c41e3a;
+  box-shadow: 0 0 20px rgba(196, 30, 58, 0.35);
 }
 
+.filme-opcao img {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.filme-opcao-nome {
+  padding: 0.5rem 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ccc;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.filme-opcao.selecionado .filme-opcao-nome {
+  color: #e8c547;
+}
+
+@media (max-width: 520px) {
+  .filme-destaque {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .filme-destaque img {
+    width: 120px;
+  }
+}
 </style>

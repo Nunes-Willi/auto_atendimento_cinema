@@ -1,10 +1,12 @@
 <script setup>
 import { RouterLink, useRouter } from 'vue-router'
 import { bannerUrl } from '../data/filmes'
+import { useCarrinhoStore } from '../stores/carrinho'
 
 const router = useRouter()
+const carrinho = useCarrinhoStore()
 
-defineProps({
+const props = defineProps({
   filme: {
     type: Object,
     required: true,
@@ -12,7 +14,8 @@ defineProps({
 })
 
 function comprarIngresso() {
-  router.push('/')
+  carrinho.selecionarFilme(props.filme)
+  router.push('/carrinho')
 }
 </script>
 

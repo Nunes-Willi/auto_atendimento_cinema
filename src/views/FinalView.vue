@@ -2,16 +2,20 @@
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useCarrinhoStore } from '../stores/carrinho'
+import { useCarrinhoStore, PRECO_INGRESSO } from '../stores/carrinho'
+import { baixarIngressoHtml, gerarIngressoHtml } from '../utils/gerarIngressoHtml'
 
 const carrinho = useCarrinhoStore()
-const { itens, total } = storeToRefs(carrinho)
+const { itens, total, filmeSelecionado } = storeToRefs(carrinho)
 
 const etapa = ref('carrinho')
 const numeroIngresso = ref('')
 const nota = ref(0)
 const pedidoResumo = ref([])
+const filmePedido = ref(null)
 const totalPagamento = ref(0)
+const erroValidacao = ref('')
+const baixandoIngresso = ref(false)
 
 function formatarPreco(valor) {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -23,7 +27,13 @@ function gerarNumeroIngresso() {
 }
 
 function irParaPagamento() {
-  if (!itens.value.length) return
+  erroValidacao.value = ''
+
+  if (!filmeSelecionado.value) {
+    erroValidacao.value = 'Pedido inválido. Escolha um filme antes de pagar.'
+    return
+  }
+
   totalPagamento.value = total.value
   etapa.value = 'pagamento'
 }
@@ -34,12 +44,14 @@ function voltarCarrinho() {
 
 function confirmarPagamento() {
   numeroIngresso.value = gerarNumeroIngresso()
+  filmePedido.value = { ...filmeSelecionado.value }
   pedidoResumo.value = itens.value.map((item) => ({
     nome: item.nome,
     quantidade: item.quantidade,
     preco: item.preco,
   }))
   carrinho.limpar()
+  carrinho.limparFilme()
   etapa.value = 'concluido'
 }
 
@@ -47,34 +59,23 @@ function definirNota(valor) {
   nota.value = valor
 }
 
-function baixarIngresso() {
-  const linhas = [
-    '================================',
-    '       CINEMA - INGRESSO',
-    '================================',
-    '',
-    `Número: ${numeroIngresso.value}`,
-    `Data: ${new Date().toLocaleString('pt-BR')}`,
-    nota.value ? `Avaliação: ${'★'.repeat(nota.value)}${'☆'.repeat(5 - nota.value)}` : '',
-    '',
-    '--- Itens do pedido ---',
-    ...pedidoResumo.value.map(
-      (item) => `${item.quantidade}x ${item.nome} - ${formatarPreco(item.preco * item.quantidade)}`,
-    ),
-    '',
-    `Total: ${formatarPreco(totalPagamento.value)}`,
-    '',
-    'Apresente este ingresso na entrada.',
-    '================================',
-  ].filter(Boolean)
+async function baixarIngresso() {
+  baixandoIngresso.value = true
 
-  const blob = new Blob([linhas.join('\n')], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `ingresso-${numeroIngresso.value}.txt`
-  link.click()
-  URL.revokeObjectURL(url)
+  try {
+    const html = await gerarIngressoHtml({
+      numeroIngresso: numeroIngresso.value,
+      filme: filmePedido.value,
+      pedidoResumo: pedidoResumo.value,
+      total: totalPagamento.value,
+      precoIngresso: PRECO_INGRESSO,
+      nota: nota.value,
+    })
+
+    baixarIngressoHtml(html, numeroIngresso.value)
+  } finally {
+    baixandoIngresso.value = false
+  }
 }
 </script>
 
@@ -86,18 +87,38 @@ function baixarIngresso() {
           etapa === 'carrinho' ? 'Carrinho' : etapa === 'pagamento' ? 'Pagamento' : 'Pedido concluído'
         }}
       </h1>
-      <p v-if="etapa === 'carrinho' && itens.length" class="checkout-subtitulo">
-        {{ itens.length }} {{ itens.length === 1 ? 'produto' : 'produtos' }}
+      <p v-if="etapa === 'carrinho' && (itens.length || filmeSelecionado)" class="checkout-subtitulo">
+        <span v-if="filmeSelecionado">1 ingresso</span>
+        <span v-if="filmeSelecionado && itens.length"> · </span>
+        <span v-if="itens.length">{{ itens.length }} {{ itens.length === 1 ? 'item da loja' : 'itens da loja' }}</span>
       </p>
     </header>
 
     <section v-if="etapa === 'carrinho'">
-      <div v-if="!itens.length" class="checkout-vazio">
-        <p>Seu carrinho está vazio.</p>
-        <RouterLink to="/loja">Ir para a loja</RouterLink>
+      <div v-if="!filmeSelecionado && !itens.length" class="checkout-vazio">
+        <p>Nenhum filme ou item no pedido.</p>
+        <RouterLink to="/">Escolher filme</RouterLink>
       </div>
 
       <ul v-else class="carrinho-lista">
+        <li v-if="filmeSelecionado" class="filme-resumo">
+          <span class="resumo-tag">Ingresso</span>
+          <strong>{{ filmeSelecionado.titulo }}</strong>
+          <span class="resumo-detalhe">{{ filmeSelecionado.sala }} · {{ formatarPreco(PRECO_INGRESSO) }}</span>
+        </li>
+        <li v-else class="filme-aviso">
+          <p>Nenhum filme selecionado.</p>
+          <div class="filme-aviso-links">
+            <RouterLink to="/">Escolher na Home</RouterLink>
+            <RouterLink to="/cartazes">Ver cartazes</RouterLink>
+          </div>
+        </li>
+
+        <li v-if="!itens.length && filmeSelecionado" class="loja-opcional">
+          <p>Quer adicionar pipoca ou bebida?</p>
+          <RouterLink to="/loja">Ir para a loja</RouterLink>
+        </li>
+
         <li v-for="item in itens" :key="item.id" class="carrinho-item">
           <div class="item-linha">
             <span class="item-icone" aria-hidden="true">{{ item.icone }}</span>
@@ -119,7 +140,13 @@ function baixarIngresso() {
         </li>
       </ul>
 
-      <footer v-if="itens.length" class="checkout-rodape">
+      <footer v-if="filmeSelecionado" class="checkout-rodape">
+        <p v-if="erroValidacao" class="erro-validacao">
+          {{ erroValidacao }}
+          <span class="erro-links">
+            <RouterLink to="/">Escolher filme</RouterLink>
+          </span>
+        </p>
         <div class="total-linha">
           <span>Total</span>
           <strong>{{ formatarPreco(total) }}</strong>
@@ -154,6 +181,7 @@ function baixarIngresso() {
       <div class="concluido-icone">✓</div>
       <h2>Pagamento confirmado!</h2>
       <p class="ingresso-numero">Ingresso nº <strong>{{ numeroIngresso }}</strong></p>
+      <p v-if="filmePedido" class="ingresso-filme">{{ filmePedido.titulo }}</p>
 
       <div class="nota-box">
         <p>Como foi sua experiência?</p>
@@ -171,12 +199,15 @@ function baixarIngresso() {
       </div>
 
       <ul class="pedido-resumo">
+        <li v-if="filmePedido">1x Ingresso — {{ filmePedido.titulo }}</li>
         <li v-for="item in pedidoResumo" :key="item.nome">
           {{ item.quantidade }}x {{ item.nome }}
         </li>
       </ul>
 
-      <button type="button" class="btn-principal" @click="baixarIngresso">Baixar ingresso</button>
+      <button type="button" class="btn-principal" :disabled="baixandoIngresso" @click="baixarIngresso">
+        {{ baixandoIngresso ? 'Gerando ingresso...' : 'Baixar ingresso digital' }}
+      </button>
       <RouterLink to="/" class="link-inicio">Voltar ao início</RouterLink>
     </section>
   </main>
@@ -229,6 +260,107 @@ function baixarIngresso() {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+}
+
+.filme-resumo {
+  padding: 1rem;
+  border: 1px solid rgba(196, 30, 58, 0.4);
+  border-radius: 10px;
+  background: rgba(196, 30, 58, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.resumo-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #e8c547;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.filme-resumo strong {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.resumo-detalhe {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.filme-aviso {
+  padding: 1rem;
+  border: 1px solid rgba(229, 57, 53, 0.4);
+  border-radius: 10px;
+  background: rgba(229, 57, 53, 0.08);
+  text-align: center;
+}
+
+.filme-aviso p {
+  margin: 0 0 0.65rem;
+  color: #ff8a80;
+  font-size: 0.9rem;
+}
+
+.filme-aviso-links {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.filme-aviso-links a {
+  color: #e8c547;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.loja-opcional {
+  padding: 1rem;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.loja-opcional p {
+  margin: 0 0 0.5rem;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.loja-opcional a {
+  color: #e8c547;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.erro-validacao {
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: rgba(229, 57, 53, 0.12);
+  border: 1px solid rgba(229, 57, 53, 0.35);
+  color: #ff8a80;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.erro-links {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.erro-links a {
+  color: #e8c547;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.ingresso-filme {
+  margin: -1rem 0 1.5rem;
+  color: #ccc;
+  font-size: 1rem;
 }
 
 .carrinho-item {

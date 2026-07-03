@@ -1,6 +1,8 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
+export const PRECO_INGRESSO = 34.9
+
 export const useCarrinhoStore = defineStore('carrinho', () => {
   const itens = ref([])
   const filmeSelecionado = ref(null)
@@ -9,9 +11,13 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
 
   const temFilme = computed(() => filmeSelecionado.value !== null)
 
-  const total = computed(() =>
-    itens.value.reduce((soma, item) => soma + item.preco * item.quantidade, 0),
-  )
+  const total = computed(() => {
+    const totalLoja = itens.value.reduce((soma, item) => soma + item.preco * item.quantidade, 0)
+    const totalIngresso = filmeSelecionado.value ? PRECO_INGRESSO : 0
+    return totalLoja + totalIngresso
+  })
+
+  const podeFinalizar = computed(() => filmeSelecionado.value !== null)
 
   const quantidadeTotal = computed(() =>
     itens.value.reduce((soma, item) => soma + item.quantidade, 0),
@@ -70,8 +76,25 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
     notificacoesNovas.value = 0
   }
 
+  function selecionarFilme(filme) {
+    filmeSelecionado.value = {
+      id: filme.id,
+      titulo: filme.titulo,
+      banner: filme.banner,
+      duracao: filme.duracao,
+      sala: filme.sala,
+    }
+  }
+
+  function limparFilme() {
+    filmeSelecionado.value = null
+  }
+
   return {
     itens,
+    filmeSelecionado,
+    temFilme,
+    podeFinalizar,
     total,
     quantidadeTotal,
     notificacao,
@@ -81,5 +104,7 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
     diminuir,
     limpar,
     limparNotificacoes,
+    selecionarFilme,
+    limparFilme,
   }
 })
