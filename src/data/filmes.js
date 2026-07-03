@@ -19,6 +19,7 @@ export const filmes = [
     legendas: 'Português',
     sala: 'Sala 3 · Dolby Atmos',
     horarios: ['14:00', '16:30', '19:00', '21:30'],
+    trailer: '/trailers/premonicao6.mp4',
   },
   {
     id: 'panico',
@@ -38,6 +39,7 @@ export const filmes = [
     legendas: 'Português',
     sala: 'Sala 1 · 2D',
     horarios: ['15:00', '18:00', '21:00'],
+    trailer: '/trailers/panico.mp4',
   },
   {
     id: 'spider-man-new-day',
@@ -57,6 +59,7 @@ export const filmes = [
     legendas: 'Português, Inglês',
     sala: 'Sala 5 · IMAX',
     horarios: ['13:00', '16:00', '19:30', '22:00'],
+    trailer: '/trailers/spiderman-brand-new-day.mp4',
   },
   {
     id: 'pulp-fiction',
@@ -76,6 +79,7 @@ export const filmes = [
     legendas: 'Português',
     sala: 'Sala 2 · Retrospectiva',
     horarios: ['17:00', '20:30'],
+    trailer: '/trailers/pulp-fiction.mp4',
   },
   {
     id: 'homem-aranha-aranhaverso',
@@ -97,6 +101,7 @@ export const filmes = [
     legendas: 'Português, Inglês, Espanhol',
     sala: 'Sala 4 · 3D',
     horarios: ['14:30', '17:30', '20:00'],
+    trailer: '/trailers/aranhaverso.mp4',
   },
 ]
 

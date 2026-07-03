@@ -1,6 +1,13 @@
 <script setup>
-import FilmeCard from '../components/FilmeCard.vue'
+import { ref } from 'vue'
+import MovieCard from '../components/MovieCard.vue'
 import { filmes } from '../data/filmes'
+
+const cartazAtivo = ref(null)
+
+function aoHover(filmeId, ativo) {
+  cartazAtivo.value = ativo ? filmeId : null
+}
 </script>
 
 <template>
@@ -12,8 +19,14 @@ import { filmes } from '../data/filmes'
     </header>
 
     <section class="cartazes-grid">
-      <ul class="filmes-lista">
-        <FilmeCard v-for="filme in filmes" :key="filme.id" :filme="filme" />
+      <ul class="filmes-lista" :class="{ 'tem-destaque': cartazAtivo }">
+        <MovieCard
+          v-for="filme in filmes"
+          :key="filme.id"
+          :filme="filme"
+          :afastar="cartazAtivo !== null && cartazAtivo !== filme.id"
+          @hover-change="(ativo) => aoHover(filme.id, ativo)"
+        />
       </ul>
     </section>
   </main>
@@ -63,33 +76,24 @@ import { filmes } from '../data/filmes'
 
 .cartazes-grid {
   padding: 0 0.25rem;
+  overflow: visible;
 }
 
 .filmes-lista {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: clamp(1.25rem, 3vw, 2rem);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(0.75rem, 2vw, 1.25rem);
   width: 100%;
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 1rem 0.5rem 3rem;
+  overflow: visible;
+  transition: gap 0.35s ease;
 }
 
-@media (min-width: 480px) {
-  .filmes-lista {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 768px) {
-  .filmes-lista {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .filmes-lista {
-    grid-template-columns: repeat(5, 1fr);
-  }
+.filmes-lista.tem-destaque {
+  gap: clamp(0.5rem, 1.5vw, 0.85rem);
 }
 </style>
