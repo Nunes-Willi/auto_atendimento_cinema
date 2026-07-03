@@ -3,8 +3,11 @@ import { defineStore } from 'pinia'
 
 export const useCarrinhoStore = defineStore('carrinho', () => {
   const itens = ref([])
+  const filmeSelecionado = ref(null)
   const notificacao = ref('')
   const notificacoesNovas = ref(0)
+
+  const temFilme = computed(() => filmeSelecionado.value !== null)
 
   const total = computed(() =>
     itens.value.reduce((soma, item) => soma + item.preco * item.quantidade, 0),
@@ -16,11 +19,12 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
 
   let timeoutNotificacao = null
 
-  function adicionar(produto) {
-    const item = itens.value.find((i) => i.id === produto.id)
+  function adicionar(produto, silencioso = false) {
+    const index = itens.value.findIndex((i) => i.id === produto.id)
 
-    if (item) {
-      item.quantidade += 1
+    if (index >= 0) {
+      const atual = itens.value[index]
+      itens.value[index] = { ...atual, quantidade: atual.quantidade + 1 }
     } else {
       itens.value.push({
         id: produto.id,
@@ -31,17 +35,35 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
       })
     }
 
-    notificacoesNovas.value += 1
-    notificacao.value = `${produto.nome} adicionado ao carrinho`
+    itens.value = [...itens.value]
 
-    clearTimeout(timeoutNotificacao)
-    timeoutNotificacao = setTimeout(() => {
-      notificacao.value = ''
-    }, 2500)
+    if (!silencioso) {
+      notificacoesNovas.value += 1
+      notificacao.value = `${produto.nome} adicionado ao carrinho`
+
+      clearTimeout(timeoutNotificacao)
+      timeoutNotificacao = setTimeout(() => {
+        notificacao.value = ''
+      }, 2500)
+    }
   }
 
-  function remover(id) {
-    itens.value = itens.value.filter((item) => item.id !== id)
+  function aumentar(id) {
+    itens.value = itens.value.map((item) =>
+      item.id === id ? { ...item, quantidade: item.quantidade + 1 } : item,
+    )
+  }
+
+  function diminuir(id) {
+    itens.value = itens.value
+      .map((item) =>
+        item.id === id ? { ...item, quantidade: item.quantidade - 1 } : item,
+      )
+      .filter((item) => item.quantidade > 0)
+  }
+
+  function limpar() {
+    itens.value = []
   }
 
   function limparNotificacoes() {
@@ -55,7 +77,9 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
     notificacao,
     notificacoesNovas,
     adicionar,
-    remover,
+    aumentar,
+    diminuir,
+    limpar,
     limparNotificacoes,
   }
 })
