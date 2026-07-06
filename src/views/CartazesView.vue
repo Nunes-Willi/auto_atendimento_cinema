@@ -80,9 +80,8 @@ function aoHover(filmeId, ativo) {
 }
 
 .filmes-lista {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(3, 320px);  gap: 1rem;
   justify-content: center;
   gap: clamp(0.75rem, 2vw, 1.25rem);
   width: 100%;
@@ -95,5 +94,17 @@ function aoHover(filmeId, ativo) {
 
 .filmes-lista.tem-destaque {
   gap: clamp(0.5rem, 1.5vw, 0.85rem);
+}
+
+@media (max-width: 900px) {
+  .filmes-lista {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .filmes-lista {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
