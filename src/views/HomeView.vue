@@ -6,7 +6,7 @@ import { filmes, bannerUrl } from '../data/filmes'
 import { useCarrinhoStore } from '../stores/carrinho'
 
 const carrinho = useCarrinhoStore()
-const { filmeSelecionado } = storeToRefs(carrinho)
+const { filmeSelecionado, qtdIngressos } = storeToRefs(carrinho)
 
 const fase = ref('inicio')
 
@@ -31,6 +31,18 @@ function iniciarAtendimento() {
 function selecionarFilme(filme) {
   carrinho.selecionarFilme(filme)
 }
+
+function aumentarIngresso() {
+  carrinho.alterarQtd(
+    qtdIngressos.value + 1
+  )
+}
+
+function diminuirIngresso() {
+  carrinho.alterarQtd(
+    qtdIngressos.value - 1
+  )
+}
 </script>
 
 <template>
@@ -40,7 +52,11 @@ function selecionarFilme(filme) {
 
       <div
         class="claquete"
-        :class="{ batendo: fase === 'batendo', fechado: fase === 'sumindo', sumindo: fase === 'sumindo' }"
+        :class="{
+          batendo: fase === 'batendo',
+          fechado: fase === 'sumindo',
+          sumindo: fase === 'sumindo',
+        }"
       >
         <div class="claquete-topo"></div>
 
@@ -50,7 +66,12 @@ function selecionarFilme(filme) {
           </div>
           <div class="info-linha info-linha-divisor"></div>
           <div class="info-linha">
-            <button class="btnRun" type="button" :disabled="fase === 'batendo'" @click="iniciarAtendimento">
+            <button
+              class="btnRun"
+              type="button"
+              :disabled="fase === 'batendo'"
+              @click="iniciarAtendimento"
+            >
               {{ fase === 'batendo' ? 'Action!' : 'Iniciar Atendimento' }}
             </button>
           </div>
@@ -72,6 +93,21 @@ function selecionarFilme(filme) {
         <span class="destaque-label">Filme selecionado</span>
         <h2>{{ filmeSelecionado.titulo }}</h2>
         <p>{{ filmeSelecionado.duracao }} · {{ filmeSelecionado.sala }}</p>
+        <div class="controle-ingressos">
+          <span class="controle-label">Ingressos</span>
+
+          <div class="controle-quantidade">
+            <button type="button" @click="diminuirIngresso" :disabled="qtdIngressos === 1">
+              −
+            </button>
+
+            <span>{{ qtdIngressos }}</span>
+
+            <button type="button" @click="aumentarIngresso" :disabled="qtdIngressos === 10">
+              +
+            </button>
+          </div>
+        </div>
         <div class="destaque-acoes">
           <RouterLink to="/carrinho" class="btn-continuar">Ir ao carrinho</RouterLink>
           <RouterLink to="/loja" class="btn-loja">Adicionar lanches</RouterLink>
@@ -98,11 +134,12 @@ function selecionarFilme(filme) {
 <style scoped>
 main {
   width: 100%;
-  min-height: calc(100vh - 80px);
+  min-height: calc(80vh - 80px);
   display: flex;
   justify-content: center;
   align-items: center;
-  background: radial-gradient(circle at center, #555 0%, #2b2b2b 35%, #111 70%, #000 100%);
+  border-radius: 100px;
+  background: radial-gradient(circle at center, #555 0%, #414141 35%, #111 70%, #000 100%);
 }
 
 .flash {
@@ -137,7 +174,9 @@ main {
   transform-origin: left center;
   transform: rotate(-18deg);
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
-  transition: transform 0.4s ease, margin-bottom 0.4s ease;
+  transition:
+    transform 0.4s ease,
+    margin-bottom 0.4s ease;
 }
 
 .claquete.batendo .claquete-topo {
@@ -252,7 +291,7 @@ h1 {
 }
 
 .home-header {
-  margin-bottom: 1.75rem;
+  margin-bottom: 3rem;
   text-align: center;
 }
 
@@ -355,7 +394,9 @@ h1 {
   font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .btn-loja:hover {
@@ -365,7 +406,7 @@ h1 {
 
 .filmes-opcoes {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1rem;
   list-style: none;
   margin: 0;
@@ -382,7 +423,10 @@ h1 {
   overflow: hidden;
   background: #141414;
   cursor: pointer;
-  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .filme-opcao:hover {
@@ -413,6 +457,63 @@ h1 {
 
 .filme-opcao.selecionado .filme-opcao-nome {
   color: #e8c547;
+}
+
+.controle-ingressos {
+  margin: 1rem 0;
+}
+
+.controle-label {
+  display: block;
+  margin-bottom: 0.45rem;
+
+  color: #ccc;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.controle-quantidade {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.controle-quantidade button {
+  width: 38px;
+  height: 38px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #c41e3a;
+  color: white;
+
+  font-size: 1.3rem;
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.controle-quantidade button:hover:not(:disabled) {
+  background: #e02545;
+}
+
+.controle-quantidade button:disabled {
+  background: #444;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.controle-quantidade span {
+  min-width: 28px;
+
+  text-align: center;
+
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
 }
 
 @media (max-width: 520px) {

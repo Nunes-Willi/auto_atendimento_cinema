@@ -6,7 +6,7 @@ import { useCarrinhoStore, PRECO_INGRESSO } from '../stores/carrinho'
 import { baixarIngressoHtml, gerarIngressoHtml } from '../utils/gerarIngressoHtml'
 
 const carrinho = useCarrinhoStore()
-const { itens, total, filmeSelecionado } = storeToRefs(carrinho)
+const { itens, total, filmeSelecionado, qtdIngressos } = storeToRefs(carrinho)
 
 const etapa = ref('carrinho')
 const numeroIngresso = ref('')
@@ -88,7 +88,7 @@ async function baixarIngresso() {
         }}
       </h1>
       <p v-if="etapa === 'carrinho' && (itens.length || filmeSelecionado)" class="checkout-subtitulo">
-        <span v-if="filmeSelecionado">1 ingresso</span>
+        <span v-if="filmeSelecionado">Ingressos: {{ qtdIngressos }}</span>
         <span v-if="filmeSelecionado && itens.length"> · </span>
         <span v-if="itens.length">{{ itens.length }} {{ itens.length === 1 ? 'item da loja' : 'itens da loja' }}</span>
       </p>
