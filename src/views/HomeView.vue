@@ -62,9 +62,9 @@ function diminuirIngresso() {
 
         <div class="claquete-corpo">
           <div class="info-linha">
-            <h1>Seja Bem Vindo</h1>
+            <h1>Seja Bem Vindo Ao</h1>
           </div>
-          <div class="info-linha info-linha-divisor"></div>
+          <div class="info-linha"><h1>CINE LCA</h1></div>
           <div class="info-linha">
             <button
               class="btnRun"
@@ -242,13 +242,7 @@ main {
   align-items: center;
   border-bottom: 1px solid #666;
   padding: 10px 0;
-}
-
-.info-linha-divisor {
-  justify-content: space-between;
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  color: #bbb;
+  text-align: center
 }
 
 h1 {
