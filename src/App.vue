@@ -1,11 +1,15 @@
 <script setup>
 import { computed, watch, watchEffect } from 'vue'
-import { RouterLink, RouterView, useRoute } from 'vue-router'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { useCarrinhoStore } from './stores/carrinho'
 
 const route = useRoute()
+const router = useRouter()
 const carrinho = useCarrinhoStore()
 const paginaLivre = computed(() => route.meta.fullBleed === true)
+const mostrarReset = computed(() => {
+  return carrinho.temFilme || carrinho.itens.length > 0
+})
 
 watchEffect(() => {
   document.body.classList.toggle('pagina-filme', route.meta.fullBleed === true)
@@ -17,6 +21,14 @@ watch(
     if (path === '/carrinho') carrinho.limparNotificacoes()
   },
 )
+function resetAtd() {
+  carrinho.limpar()
+  carrinho.limparFilme()
+  carrinho.alterarQtd(1)
+  carrinho.limparNotificacoes()
+
+  router.push('/')
+}
 </script>
 
 <template>
@@ -35,6 +47,7 @@ watch(
   <p v-if="carrinho.notificacao" class="toast" role="status">{{ carrinho.notificacao }}</p>
 
   <div :class="['conteudo', { 'conteudo-livre': paginaLivre }]">
+    <button v-if="mostrarReset" class="btn-reset" @click="resetAtd">Resetar Atendimento</button>
     <RouterView />
   </div>
 </template>
@@ -137,5 +150,36 @@ nav a.router-link-exact-active {
   max-width: none;
   padding: 0;
   align-items: stretch;
+}
+
+.btn-reset {
+  position: fixed;
+  top: 20px;
+  left: 30px;
+  z-index: 1000;
+
+  padding: 10px 18px;
+
+  border: 2px solid #c41e3a;
+  border-radius: 10px;
+
+  background: #141414;
+  color: #fff;
+
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: all .25s ease;
+}
+
+.btn-reset:hover {
+  background: #c41e3a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(196, 30, 58, 0.35);
+}
+
+.btn-reset:active {
+  transform: translateY(0);
 }
 </style>
