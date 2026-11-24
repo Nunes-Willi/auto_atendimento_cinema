@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useCarrinhoStore } from '../stores/carrinho'
 import { baixarIngressoHtml, gerarIngressoHtml } from '../utils/gerarIngressoHtml'
+import { criarPedido } from '../services/api'
 
 const carrinho = useCarrinhoStore()
 const { itens, total, filmeSelecionado, qtdIngressos, precoIngresso } = storeToRefs(carrinho)
@@ -16,14 +17,11 @@ const filmePedido = ref(null)
 const totalPagamento = ref(0)
 const erroValidacao = ref('')
 const baixandoIngresso = ref(false)
+const salvandoPedido = ref(false)
+const erroPagamento = ref('')
 
 function formatarPreco(valor) {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-}
-
-function gerarNumeroIngresso() {
-  const codigo = Math.floor(100000 + Math.random() * 900000)
-  return `CIN-${codigo}`
 }
 
 function irParaPagamento() {
@@ -39,20 +37,39 @@ function irParaPagamento() {
 }
 
 function voltarCarrinho() {
+  erroPagamento.value = ''
   etapa.value = 'carrinho'
 }
 
-function confirmarPagamento() {
-  numeroIngresso.value = gerarNumeroIngresso()
-  filmePedido.value = { ...filmeSelecionado.value }
-  pedidoResumo.value = itens.value.map((item) => ({
-    nome: item.nome,
-    quantidade: item.quantidade,
-    preco: item.preco,
-  }))
-  carrinho.limpar()
-  carrinho.limparFilme()
-  etapa.value = 'concluido'
+async function confirmarPagamento() {
+  salvandoPedido.value = true
+  erroPagamento.value = ''
+
+  try {
+    const pedido = await criarPedido({
+      filme: filmeSelecionado.value.id,
+      qtd_ingressos: qtdIngressos.value,
+      forma_pagamento: 'pix',
+      itens: itens.value.map((item) => ({ produto: item.id, quantidade: item.quantidade })),
+    })
+
+    numeroIngresso.value = pedido.codigo
+    totalPagamento.value = Number(pedido.total)
+    filmePedido.value = { ...filmeSelecionado.value, preco: Number(pedido.preco_ingresso) }
+    pedidoResumo.value = pedido.itens.map((item) => ({
+      nome: item.produto_nome,
+      quantidade: item.quantidade,
+      preco: Number(item.preco_unitario),
+    }))
+    carrinho.limpar()
+    carrinho.limparFilme()
+    etapa.value = 'concluido'
+  } catch (e) {
+    console.error(e)
+    erroPagamento.value = 'Não foi possível registrar o pedido. Tente novamente.'
+  } finally {
+    salvandoPedido.value = false
+  }
 }
 
 function definirNota(valor) {
@@ -84,13 +101,22 @@ async function baixarIngresso() {
     <header class="checkout-header">
       <h1>
         {{
-          etapa === 'carrinho' ? 'Carrinho' : etapa === 'pagamento' ? 'Pagamento' : 'Pedido concluído'
+          etapa === 'carrinho'
+            ? 'Carrinho'
+            : etapa === 'pagamento'
+              ? 'Pagamento'
+              : 'Pedido concluído'
         }}
       </h1>
-      <p v-if="etapa === 'carrinho' && (itens.length || filmeSelecionado)" class="checkout-subtitulo">
+      <p
+        v-if="etapa === 'carrinho' && (itens.length || filmeSelecionado)"
+        class="checkout-subtitulo"
+      >
         <span v-if="filmeSelecionado">Ingressos: {{ qtdIngressos }}</span>
         <span v-if="filmeSelecionado && itens.length"> · </span>
-        <span v-if="itens.length">{{ itens.length }} {{ itens.length === 1 ? 'item da loja' : 'itens da loja' }}</span>
+        <span v-if="itens.length"
+          >{{ itens.length }} {{ itens.length === 1 ? 'item da loja' : 'itens da loja' }}</span
+        >
       </p>
     </header>
 
@@ -104,7 +130,9 @@ async function baixarIngresso() {
         <li v-if="filmeSelecionado" class="filme-resumo">
           <span class="resumo-tag">Ingresso</span>
           <strong>{{ filmeSelecionado.titulo }}</strong>
-          <span class="resumo-detalhe">{{ filmeSelecionado.sala }} · {{ formatarPreco(precoIngresso) }}</span>
+          <span class="resumo-detalhe"
+            >{{ filmeSelecionado.sala }} · {{ formatarPreco(precoIngresso) }}</span
+          >
         </li>
         <li v-else class="filme-aviso">
           <p>Nenhum filme selecionado.</p>
@@ -132,9 +160,13 @@ async function baixarIngresso() {
           <div class="item-controles">
             <span class="controles-label">Quantidade</span>
             <div class="item-quantidade">
-              <button type="button" aria-label="Remover um" @click="carrinho.diminuir(item.id)">-</button>
+              <button type="button" aria-label="Remover um" @click="carrinho.diminuir(item.id)">
+                -
+              </button>
               <span>{{ item.quantidade }}</span>
-              <button type="button" aria-label="Adicionar um" @click="carrinho.aumentar(item.id)">+</button>
+              <button type="button" aria-label="Adicionar um" @click="carrinho.aumentar(item.id)">
+                +
+              </button>
             </div>
           </div>
         </li>
@@ -151,7 +183,9 @@ async function baixarIngresso() {
           <span>Total</span>
           <strong>{{ formatarPreco(total) }}</strong>
         </div>
-        <button type="button" class="btn-principal" @click="irParaPagamento">Ir para pagamento</button>
+        <button type="button" class="btn-principal" @click="irParaPagamento">
+          Ir para pagamento
+        </button>
       </footer>
     </section>
 
@@ -171,16 +205,34 @@ async function baixarIngresso() {
         </div>
       </div>
 
+      <p v-if="erroPagamento" class="erro-validacao">{{ erroPagamento }}</p>
+
       <div class="pagamento-acoes">
-        <button type="button" class="btn-secundario" @click="voltarCarrinho">Voltar</button>
-        <button type="button" class="btn-principal" @click="confirmarPagamento">Confirmar pagamento</button>
+        <button
+          type="button"
+          class="btn-secundario"
+          :disabled="salvandoPedido"
+          @click="voltarCarrinho"
+        >
+          Voltar
+        </button>
+        <button
+          type="button"
+          class="btn-principal"
+          :disabled="salvandoPedido"
+          @click="confirmarPagamento"
+        >
+          {{ salvandoPedido ? 'Registrando pedido...' : 'Confirmar pagamento' }}
+        </button>
       </div>
     </section>
 
     <section v-else class="concluido">
       <div class="concluido-icone">✓</div>
       <h2>Pagamento confirmado!</h2>
-      <p class="ingresso-numero">Ingresso nº <strong>{{ numeroIngresso }}</strong></p>
+      <p class="ingresso-numero">
+        Ingresso nº <strong>{{ numeroIngresso }}</strong>
+      </p>
       <p v-if="filmePedido" class="ingresso-filme">{{ filmePedido.titulo }}</p>
 
       <div class="nota-box">
@@ -205,7 +257,12 @@ async function baixarIngresso() {
         </li>
       </ul>
 
-      <button type="button" class="btn-principal" :disabled="baixandoIngresso" @click="baixarIngresso">
+      <button
+        type="button"
+        class="btn-principal"
+        :disabled="baixandoIngresso"
+        @click="baixarIngresso"
+      >
         {{ baixandoIngresso ? 'Gerando ingresso...' : 'Baixar ingresso digital' }}
       </button>
       <RouterLink to="/" class="link-inicio">Voltar ao início</RouterLink>
@@ -434,7 +491,9 @@ async function baixarIngresso() {
   font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .item-quantidade button:hover {
@@ -478,7 +537,9 @@ async function baixarIngresso() {
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .btn-principal:hover {
@@ -494,7 +555,9 @@ async function baixarIngresso() {
   color: #ccc;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .btn-secundario:hover {
@@ -638,7 +701,9 @@ async function baixarIngresso() {
   font-size: 1.75rem;
   color: #444;
   cursor: pointer;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .nota-estrelas button.ativa {

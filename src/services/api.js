@@ -24,4 +24,14 @@ export async function buscarFilme(id) {
   return data
 }
 
+export async function listarProdutos() {
+  const { data } = await api.get('/produtos/', { params: { ativo: true, page_size: 100 } })
+  return data.results.map((produto) => ({ ...produto, preco: Number(produto.preco) }))
+}
+
+export async function criarPedido(pedido) {
+  const { data } = await api.post('/pedidos/', pedido)
+  return data
+}
+
 export default api

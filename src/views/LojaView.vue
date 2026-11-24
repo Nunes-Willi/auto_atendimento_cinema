@@ -1,83 +1,32 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useCarrinhoStore } from '../stores/carrinho'
+import { listarProdutos } from '../services/api'
 
 const carrinho = useCarrinhoStore()
 
-const combos = [
-  {
-    icone: '🎬',
-    nome: 'Combo Família',
-    descricao: '2 baldes + 4 refri + 2 chocolates.',
-    preco: 89.9,
-  },
-  {
-    icone: '💑',
-    nome: 'Combo Casal',
-    descricao: '1 balde grande + 2 refri + 1 chocolate.',
-    preco: 54.9,
-  },
-  {
-    icone: '🍿',
-    nome: 'Combo Pipoca + Refri',
-    descricao: 'Pipoca média + refrigerante 500 ml.',
-    preco: 28.9,
-  },
-  {
-    icone: '⭐',
-    nome: 'Combo Mega',
-    descricao: '3 baldes + 6 refri + nachos + 3 doces.',
-    preco: 129.9,
-  },
-  {
-    icone: '🎟️',
-    nome: 'Combo Cinema',
-    descricao: 'Pipoca + refri + chocolate + caneca.',
-    preco: 69.9,
-  },
-]
+const produtos = ref([])
+const carregando = ref(true)
+const erro = ref('')
 
-const pipocas = [
-  {
-    icone: '🍿',
-    nome: 'Pipoca Salgada',
-    descricao: 'Crocante com manteiga, tamanho médio.',
-    preco: 18.9,
-  },
-  {
-    icone: '🍬',
-    nome: 'Pipoca Doce',
-    descricao: 'Caramelizada, ideal para qualquer sessão.',
-    preco: 19.9,
-  },
-  {
-    icone: '🧈',
-    nome: 'Pipoca Manteiga',
-    descricao: 'Extra manteiga, tamanho grande.',
-    preco: 22.9,
-  },
-  {
-    icone: '🌶️',
-    nome: 'Pipoca Picante',
-    descricao: 'Toque de pimenta, tamanho médio.',
-    preco: 20.9,
-  },
-]
+const combos = computed(() => produtos.value.filter((p) => p.categoria === 'combo'))
+const pipocas = computed(() => produtos.value.filter((p) => p.categoria === 'pipoca'))
+const lanches = computed(() => produtos.value.filter((p) => p.categoria === 'lanche'))
 
-const lanches = [
-  { icone: '🥤', nome: 'Refrigerante Grande', descricao: '700 ml. Cola, guaraná ou limão.', preco: 12.5 },
-  { icone: '💧', nome: 'Água Mineral', descricao: '500 ml gelada.', preco: 6.0 },
-  { icone: '🧀', nome: 'Nachos com Queijo', descricao: 'Nachos com molho quentinho.', preco: 24.9 },
-  { icone: '🍫', nome: 'Chocolate Premium', descricao: 'Barra belga 100 g.', preco: 15.9 },
-  { icone: '🌭', nome: 'Hot Dog', descricao: 'Pão, salsicha e molhos.', preco: 18.0 },
-  { icone: '🍟', nome: 'Batata Frita', descricao: 'Porção média crocante.', preco: 16.9 },
-  { icone: '🧃', nome: 'Suco Natural', descricao: 'Laranja ou limão, 400 ml.', preco: 11.9 },
-  { icone: '🥨', nome: 'Amendoim Salgado', descricao: 'Porção para compartilhar.', preco: 9.9 },
-  { icone: '🪣', nome: 'Balde Personalizado', descricao: 'Arte do filme + pipoca grande.', preco: 42.9 },
-  { icone: '☕', nome: 'Caneca Temática', descricao: 'Cerâmica exclusiva. 350 ml.', preco: 35.0 },
-  { icone: '🍦', nome: 'Sorvete', descricao: 'Casquinha de baunilha ou chocolate.', preco: 14.0 },
-  { icone: '🥪', nome: 'Sanduíche Natural', descricao: 'Frango com salada.', preco: 19.9 },
-]
+async function carregarProdutos() {
+  carregando.value = true
+  erro.value = ''
+  try {
+    produtos.value = await listarProdutos()
+  } catch (e) {
+    console.error(e)
+    erro.value = 'Não foi possível carregar a loja. Verifique se a API Django está rodando.'
+  } finally {
+    carregando.value = false
+  }
+}
+
+onMounted(carregarProdutos)
 
 const comboRef = ref(null)
 const lanchesIndice = ref(0)
@@ -86,9 +35,11 @@ const LANCHES_VISIVEIS = 8
 const LANCHES_PASSO = 4
 
 const lanchesVisiveis = computed(() => {
+  const lista = lanches.value
+  const quantidade = Math.min(LANCHES_VISIVEIS, lista.length)
   const itens = []
-  for (let i = 0; i < LANCHES_VISIVEIS; i++) {
-    itens.push(lanches[(lanchesIndice.value + i) % lanches.length])
+  for (let i = 0; i < quantidade; i++) {
+    itens.push(lista[(lanchesIndice.value + i) % lista.length])
   }
   return itens
 })
@@ -107,12 +58,13 @@ function moverCombos(direcao) {
 }
 
 function avancarLanches() {
-  lanchesIndice.value = (lanchesIndice.value + LANCHES_PASSO) % lanches.length
+  if (!lanches.value.length) return
+  lanchesIndice.value = (lanchesIndice.value + LANCHES_PASSO) % lanches.value.length
 }
 
 function adicionar(item) {
   carrinho.adicionar({
-    id: item.nome,
+    id: item.id,
     nome: item.nome,
     icone: item.icone,
     preco: item.preco,
@@ -127,16 +79,54 @@ function adicionar(item) {
       <p>Lanches e colecionáveis da bomboniere.</p>
     </header>
 
-    <section class="secao" aria-labelledby="titulo-combos">
-      <h2 id="titulo-combos" class="secao-titulo">Combos</h2>
+    <p v-if="carregando" class="estado-api">Carregando produtos...</p>
+    <div v-else-if="erro" class="estado-api estado-erro">
+      <p>{{ erro }}</p>
+      <button type="button" @click="carregarProdutos">Tentar novamente</button>
+    </div>
 
-      <div class="carrossel-wrapper">
-        <button type="button" class="seta-btn" aria-label="Combos anteriores" @click="moverCombos(-1)">
-          ‹
-        </button>
+    <template v-else>
+      <section class="secao" aria-labelledby="titulo-combos">
+        <h2 id="titulo-combos" class="secao-titulo">Combos</h2>
 
-        <div :ref="setComboEl" class="carrossel" tabindex="0">
-          <article v-for="item in combos" :key="item.nome" class="produto">
+        <div class="carrossel-wrapper">
+          <button
+            type="button"
+            class="seta-btn"
+            aria-label="Combos anteriores"
+            @click="moverCombos(-1)"
+          >
+            ‹
+          </button>
+
+          <div :ref="setComboEl" class="carrossel" tabindex="0">
+            <article v-for="item in combos" :key="item.nome" class="produto">
+              <span class="produto-icone" aria-hidden="true">{{ item.icone }}</span>
+              <h3>{{ item.nome }}</h3>
+              <p>{{ item.descricao }}</p>
+              <span class="produto-preco">{{ formatarPreco(item.preco) }}</span>
+              <button type="button" class="btn-adicionar" @click="adicionar(item)">
+                Adicionar
+              </button>
+            </article>
+          </div>
+
+          <button
+            type="button"
+            class="seta-btn"
+            aria-label="Próximos combos"
+            @click="moverCombos(1)"
+          >
+            ›
+          </button>
+        </div>
+      </section>
+
+      <section class="secao" aria-labelledby="titulo-pipocas">
+        <h2 id="titulo-pipocas" class="secao-titulo">Pipocas</h2>
+
+        <div class="pipocas-grid">
+          <article v-for="item in pipocas" :key="item.nome" class="produto">
             <span class="produto-icone" aria-hidden="true">{{ item.icone }}</span>
             <h3>{{ item.nome }}</h3>
             <p>{{ item.descricao }}</p>
@@ -144,49 +134,52 @@ function adicionar(item) {
             <button type="button" class="btn-adicionar" @click="adicionar(item)">Adicionar</button>
           </article>
         </div>
+      </section>
 
-        <button type="button" class="seta-btn" aria-label="Próximos combos" @click="moverCombos(1)">
-          ›
-        </button>
-      </div>
-    </section>
+      <section class="secao" aria-labelledby="titulo-lanches">
+        <div class="secao-topo">
+          <h2 id="titulo-lanches" class="secao-titulo">Lanches</h2>
+          <button
+            type="button"
+            class="seta-btn"
+            aria-label="Ver mais lanches"
+            @click="avancarLanches"
+          >
+            ›
+          </button>
+        </div>
 
-    <section class="secao" aria-labelledby="titulo-pipocas">
-      <h2 id="titulo-pipocas" class="secao-titulo">Pipocas</h2>
-
-      <div class="pipocas-grid">
-        <article v-for="item in pipocas" :key="item.nome" class="produto">
-          <span class="produto-icone" aria-hidden="true">{{ item.icone }}</span>
-          <h3>{{ item.nome }}</h3>
-          <p>{{ item.descricao }}</p>
-          <span class="produto-preco">{{ formatarPreco(item.preco) }}</span>
-          <button type="button" class="btn-adicionar" @click="adicionar(item)">Adicionar</button>
-        </article>
-      </div>
-    </section>
-
-    <section class="secao" aria-labelledby="titulo-lanches">
-      <div class="secao-topo">
-        <h2 id="titulo-lanches" class="secao-titulo">Lanches</h2>
-        <button type="button" class="seta-btn" aria-label="Ver mais lanches" @click="avancarLanches">
-          ›
-        </button>
-      </div>
-
-      <div class="lanches-grid">
-        <article v-for="(item, i) in lanchesVisiveis" :key="`${item.nome}-${i}`" class="produto">
-          <span class="produto-icone" aria-hidden="true">{{ item.icone }}</span>
-          <h3>{{ item.nome }}</h3>
-          <p>{{ item.descricao }}</p>
-          <span class="produto-preco">{{ formatarPreco(item.preco) }}</span>
-          <button type="button" class="btn-adicionar" @click="adicionar(item)">Adicionar</button>
-        </article>
-      </div>
-    </section>
+        <div class="lanches-grid">
+          <article v-for="(item, i) in lanchesVisiveis" :key="`${item.nome}-${i}`" class="produto">
+            <span class="produto-icone" aria-hidden="true">{{ item.icone }}</span>
+            <h3>{{ item.nome }}</h3>
+            <p>{{ item.descricao }}</p>
+            <span class="produto-preco">{{ formatarPreco(item.preco) }}</span>
+            <button type="button" class="btn-adicionar" @click="adicionar(item)">Adicionar</button>
+          </article>
+        </div>
+      </section>
+    </template>
   </main>
 </template>
 
 <style scoped>
+.estado-api {
+  padding: 3rem 1rem;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.estado-erro button {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
 .catalogo {
   width: 100%;
   max-width: 960px;
@@ -292,7 +285,9 @@ function adicionar(item) {
   font-size: 1.4rem;
   line-height: 1;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .seta-btn:hover {
@@ -309,7 +304,10 @@ function adicionar(item) {
   border: 1px solid #2a2a2a;
   border-radius: 12px;
   background: #141414;
-  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .produto:hover {
@@ -363,7 +361,9 @@ function adicionar(item) {
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .btn-adicionar:hover {
