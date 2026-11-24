@@ -36,7 +36,7 @@ function comprarIngresso() {
             <span class="tag tag-duracao">{{ filme.duracao }}</span>
           </div>
 
-          <div class="hero-nota">
+          <div v-if="filme.nota" class="hero-nota">
             <span class="estrelas">★★★★★</span>
             <span>{{ filme.nota }} · {{ filme.avaliacoes }} avaliações</span>
           </div>
@@ -60,8 +60,9 @@ function comprarIngresso() {
         <div class="painel-bloco painel-info">
           <h2>Informações</h2>
           <dl>
-            <div><dt>Ano</dt><dd>{{ filme.ano }}</dd></div>
-            <div><dt>Diretor</dt><dd>{{ filme.diretor }}</dd></div>
+            <div v-if="filme.ano"><dt>Ano</dt><dd>{{ filme.ano }}</dd></div>
+            <div v-if="filme.diretor"><dt>Diretor</dt><dd>{{ filme.diretor }}</dd></div>
+            <div><dt>Ingresso</dt><dd>R$ {{ filme.preco.toFixed(2).replace('.', ',') }}</dd></div>
             <div><dt>Áudio</dt><dd>{{ filme.audio }}</dd></div>
             <div><dt>Legendas</dt><dd>{{ filme.legendas }}</dd></div>
             <div><dt>Sala</dt><dd>{{ filme.sala }}</dd></div>

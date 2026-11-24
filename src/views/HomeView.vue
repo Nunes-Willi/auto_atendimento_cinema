@@ -2,15 +2,20 @@
 import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { filmes, bannerUrl } from '../data/filmes'
+import { bannerUrl } from '../data/filmes'
 import { useCarrinhoStore } from '../stores/carrinho'
+import { useFilmesStore } from '../stores/filmes'
 
 const carrinho = useCarrinhoStore()
 const { filmeSelecionado, qtdIngressos } = storeToRefs(carrinho)
 
+const filmesStore = useFilmesStore()
+const { filmes, carregando, erro } = storeToRefs(filmesStore)
+
 const fase = ref('inicio')
 
 onMounted(() => {
+  filmesStore.carregar()
   if (filmeSelecionado.value) {
     fase.value = 'sumido'
   }
@@ -115,7 +120,13 @@ function diminuirIngresso() {
       </div>
     </div>
 
-    <ul class="filmes-opcoes">
+    <p v-if="carregando" class="estado-api">Carregando filmes...</p>
+    <div v-else-if="erro" class="estado-api estado-erro">
+      <p>{{ erro }}</p>
+      <button type="button" @click="filmesStore.carregar(true)">Tentar novamente</button>
+    </div>
+
+    <ul v-else class="filmes-opcoes">
       <li v-for="filme in filmes" :key="filme.id">
         <button
           type="button"
@@ -132,6 +143,22 @@ function diminuirIngresso() {
 </template>
 
 <style scoped>
+.estado-api {
+  padding: 2rem 1rem;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.estado-erro button {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
 main {
   width: 100%;
   min-height: calc(80vh - 80px);

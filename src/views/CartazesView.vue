@@ -1,7 +1,13 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import MovieCard from '../components/MovieCard.vue'
-import { filmes } from '../data/filmes'
+import { useFilmesStore } from '../stores/filmes'
+
+const filmesStore = useFilmesStore()
+const { filmes, carregando, erro } = storeToRefs(filmesStore)
+
+onMounted(() => filmesStore.carregar())
 
 const cartazAtivo = ref(null)
 
@@ -18,7 +24,13 @@ function aoHover(filmeId, ativo) {
       <p class="cartazes-subtitulo">{{ filmes.length }} títulos disponíveis nesta semana</p>
     </header>
 
-    <section class="cartazes-grid">
+    <p v-if="carregando" class="estado-api">Carregando filmes...</p>
+    <div v-else-if="erro" class="estado-api estado-erro">
+      <p>{{ erro }}</p>
+      <button type="button" @click="filmesStore.carregar(true)">Tentar novamente</button>
+    </div>
+
+    <section v-else class="cartazes-grid">
       <ul class="filmes-lista" :class="{ 'tem-destaque': cartazAtivo }">
         <MovieCard
           v-for="filme in filmes"
@@ -33,6 +45,22 @@ function aoHover(filmeId, ativo) {
 </template>
 
 <style scoped>
+.estado-api {
+  padding: 3rem 1rem;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.estado-erro button {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
 .cartazes {
   width: 100%;
   padding: 2rem 0 4rem;

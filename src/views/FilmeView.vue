@@ -1,15 +1,45 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import FilmeHero from '../components/FilmeHero.vue'
-import { getFilmeById } from '../data/filmes'
+import { useFilmesStore } from '../stores/filmes'
 
 const route = useRoute()
-const filme = computed(() => getFilmeById(route.params.id))
+const filmesStore = useFilmesStore()
+
+const filme = ref(null)
+const carregando = ref(true)
+const erro = ref('')
+
+watch(
+  () => route.params.id,
+  async (id) => {
+    carregando.value = true
+    erro.value = ''
+    try {
+      filme.value = await filmesStore.obter(id)
+    } catch (e) {
+      console.error(e)
+      erro.value = 'Não foi possível falar com a API Django.'
+    } finally {
+      carregando.value = false
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
-  <div v-if="filme" class="filme-pagina">
+  <div v-if="carregando" class="filme-nao-encontrado">
+    <p>Carregando filme...</p>
+  </div>
+
+  <div v-else-if="erro" class="filme-nao-encontrado">
+    <h1>{{ erro }}</h1>
+    <RouterLink to="/cartazes">Voltar aos cartazes</RouterLink>
+  </div>
+
+  <div v-else-if="filme" class="filme-pagina">
     <FilmeHero :filme="filme" />
   </div>
 

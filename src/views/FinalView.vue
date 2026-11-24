@@ -2,11 +2,11 @@
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useCarrinhoStore, PRECO_INGRESSO } from '../stores/carrinho'
+import { useCarrinhoStore } from '../stores/carrinho'
 import { baixarIngressoHtml, gerarIngressoHtml } from '../utils/gerarIngressoHtml'
 
 const carrinho = useCarrinhoStore()
-const { itens, total, filmeSelecionado, qtdIngressos } = storeToRefs(carrinho)
+const { itens, total, filmeSelecionado, qtdIngressos, precoIngresso } = storeToRefs(carrinho)
 
 const etapa = ref('carrinho')
 const numeroIngresso = ref('')
@@ -68,7 +68,7 @@ async function baixarIngresso() {
       filme: filmePedido.value,
       pedidoResumo: pedidoResumo.value,
       total: totalPagamento.value,
-      precoIngresso: PRECO_INGRESSO,
+      precoIngresso: filmePedido.value?.preco ?? precoIngresso.value,
       nota: nota.value,
     })
 
@@ -104,7 +104,7 @@ async function baixarIngresso() {
         <li v-if="filmeSelecionado" class="filme-resumo">
           <span class="resumo-tag">Ingresso</span>
           <strong>{{ filmeSelecionado.titulo }}</strong>
-          <span class="resumo-detalhe">{{ filmeSelecionado.sala }} · {{ formatarPreco(PRECO_INGRESSO) }}</span>
+          <span class="resumo-detalhe">{{ filmeSelecionado.sala }} · {{ formatarPreco(precoIngresso) }}</span>
         </li>
         <li v-else class="filme-aviso">
           <p>Nenhum filme selecionado.</p>

@@ -9,11 +9,13 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
   const notificacao = ref('')
   const notificacoesNovas = ref(0)
 
+  const precoIngresso = computed(() => filmeSelecionado.value?.preco ?? PRECO_INGRESSO)
+
   const temFilme = computed(() => filmeSelecionado.value !== null)
 
   const total = computed(() => {
     const totalLoja = itens.value.reduce((soma, item) => soma + item.preco * item.quantidade, 0)
-    const totalIngresso = filmeSelecionado.value ? PRECO_INGRESSO * qtdIngressos.value : 0
+    const totalIngresso = filmeSelecionado.value ? precoIngresso.value * qtdIngressos.value : 0
     return totalLoja + totalIngresso
   })
 
@@ -84,6 +86,7 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
       banner: filme.banner,
       duracao: filme.duracao,
       sala: filme.sala,
+      preco: filme.preco,
     }
   }
 
@@ -102,6 +105,7 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
     temFilme,
     podeFinalizar,
     qtdIngressos,
+    precoIngresso,
     total,
     quantidadeTotal,
     notificacao,

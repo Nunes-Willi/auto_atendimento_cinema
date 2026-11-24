@@ -1,4 +1,4 @@
-export const filmes = [
+const extrasLocais = [
   {
     id: 'premonicacao-6',
     titulo: 'Premonição 6',
@@ -44,6 +44,7 @@ export const filmes = [
   {
     id: 'spider-man-new-day',
     titulo: 'Spider-Man: New Day',
+    nomesApi: ['Homem-Aranha: Um novo dia'],
     banner: '/banner/spiderman-newday.jpeg',
     bannerHero: '/banner2/spiderman-newday2.jpeg',
     classificacao: '12',
@@ -105,10 +106,30 @@ export const filmes = [
   },
 ]
 
-export function getFilmeById(id) {
-  return filmes.find((filme) => filme.id === id)
+function normalizar(texto) {
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+}
+
+const CAMPOS_DA_API = ['id', 'titulo', 'nomesApi', 'sinopse', 'classificacao', 'duracao', 'banner']
+
+export function extrasPorNome(nome) {
+  const alvo = normalizar(nome)
+  const encontrado = extrasLocais.find((filme) =>
+    [filme.titulo, ...(filme.nomesApi ?? [])].some((n) => normalizar(n) === alvo),
+  )
+  if (!encontrado) return null
+
+  return Object.fromEntries(
+    Object.entries(encontrado).filter(([campo]) => !CAMPOS_DA_API.includes(campo)),
+  )
 }
 
 export function bannerUrl(caminho) {
+  if (!caminho) return ''
+  if (/^https?:\/\//.test(caminho)) return caminho
   return encodeURI(caminho)
 }
